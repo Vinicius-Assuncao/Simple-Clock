@@ -159,13 +159,14 @@
 
         <section class="pane" data-pane="atalhos">
           <h3>Atalhos de teclado</h3>
-          <div class="shortcut-list">
-            <div><kbd>Espaço</kbd><span>Iniciar ou pausar</span></div>
-            <div><kbd>R</kbd><span>Reiniciar o modo atual</span></div>
-            <div><kbd>L</kbd><span>Registrar volta no cronômetro</span></div>
-            <div><kbd>P</kbd><span>Abrir ou fechar Picture-in-Picture</span></div>
+          <div class="shortcut-list shortcut-editor">
+            <div><span>Iniciar ou pausar</span><button type="button" class="shortcut-key" data-shortcut="toggle"><kbd>Espaço</kbd></button></div>
+            <div><span>Reiniciar o modo atual</span><button type="button" class="shortcut-key" data-shortcut="reset"><kbd>R</kbd></button></div>
+            <div><span>Registrar volta no cronômetro</span><button type="button" class="shortcut-key" data-shortcut="lap"><kbd>L</kbd></button></div>
+            <div><span>Abrir ou fechar Picture-in-Picture</span><button type="button" class="shortcut-key" data-shortcut="pip"><kbd>P</kbd></button></div>
           </div>
-          <p class="hint">Os atalhos não atuam enquanto você estiver digitando em um campo.</p>
+          <button type="button" id="resetShortcuts" class="btn btn-sm">Restaurar atalhos padrão</button>
+          <p class="hint">Clique em um atalho e pressione a nova tecla. Os atalhos não atuam enquanto você estiver digitando em um campo.</p>
         </section>
 
         <section class="pane" data-pane="aparencia">

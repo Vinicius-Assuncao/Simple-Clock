@@ -9,7 +9,7 @@ Os modos ficam na barra inferior. Ao sair, o site reabre no último modo usado.
 | Modo | O que faz |
 | --- | --- |
 | 🕐 **Horário** | Horário atual nos estilos digital, flip ou analógico. Pode mostrar data e fuso. |
-| ⏱ **Cronômetro** | Inicia, pausa, zera e registra voltas (parcial e total). Estilo digital ou flip. |
+| ⏱ **Cronômetro** | Inicia, pausa, zera e registra voltas (parcial e total), que podem ser removidas da lista. Estilo digital ou flip. |
 | ⏳ **Temporizador** | Define horas, minutos e segundos. Inicia, pausa e reinicia. Pode mostrar o tempo inicial e uma barra de progresso (ambos ativáveis em Configurações). Ao acabar, toca um som e mostra um aviso. |
 | 📚 **Estudo** | Sequência de blocos de estudo e pausas. Pode repetir um número de vezes, repetir até um horário final ou repetir indefinidamente. Há a opção de usar o horário como base: cada bloco aparece com o horário em que começa (ex.: `19:02 Foco · 15 min (Estudo)`). Estilos prontos: Pomodoro 25/5, Longo 50/10 e Curto 15/3. |
 | 🔔 **Lembretes** | Lembretes com horário e texto, de uma vez ou todo dia. Na hora marcada aparece um aviso, toca um som e, se permitido, chega uma notificação do navegador. |
@@ -29,12 +29,16 @@ O relógio, cronômetro, temporizador, estudo, prova e lembretes compartilham a 
 
 O botão ⚙ abre o painel. Ele mostra só as abas que fazem sentido no modo atual:
 
-- **Sempre:** Geral, Aparência e Relógio.
+- **Sempre:** Geral, Aparência, Relógio e Atalhos.
 - **Relógio:** também Fuso horário.
 - **Temporizador:** também a duração padrão.
 - **Estudo:** também a sequência de blocos.
 - **Lembretes:** também notificações.
 - **Prova:** também fuso horário e configurações da prova.
+
+Em **Atalhos** você pode personalizar as teclas de ação ou restaurar os atalhos padrão.
+
+Clique fora do painel de configurações para fechá-lo.
 
 Em **Aparência** você escolhe a cor do fundo, do relógio, dos textos e a **cor de destaque**, usada no ponteiro dos segundos, nas barras de progresso, nos botões principais e nos avisos. A cor do texto não pode ser igual à do fundo. Se você tentar, aparece um aviso. Se mudar o fundo para a cor do texto, o texto muda para o contraste.
 

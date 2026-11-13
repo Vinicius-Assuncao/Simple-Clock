@@ -170,7 +170,7 @@ function renderStopwatch() {
 
 function renderLaps() {
   $('swLaps').innerHTML = rt.sw.laps
-    .map((l, i) => `<li>Volta ${rt.sw.laps.length - i}: ${l.split} <span style="opacity:.6">(total ${l.total})</span></li>`)
+    .map((l, i) => `<li><span>Volta ${rt.sw.laps.length - i}: ${l.split} <span style="opacity:.6">(total ${l.total})</span></span><button type="button" class="lap-del" data-lap-remove="${i}" aria-label="Remover volta ${rt.sw.laps.length - i}" title="Remover volta">×</button></li>`)
     .join('');
 }
 

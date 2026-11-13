@@ -132,6 +132,7 @@ const DEFAULTS = {
   },
   reminders: [],
   worldClocks: [],
+  shortcuts: { toggle: ' ', reset: 'r', lap: 'l', pip: 'p' },
   exam: {
     showTimes: true,
     showCountdown: true,
@@ -158,6 +159,11 @@ function loadState() {
   if (!Array.isArray(s.reminders)) s.reminders = [];
   if (!Array.isArray(s.worldClocks)) s.worldClocks = [];
   s.worldClocks = s.worldClocks.filter(item => item && typeof item.tz === 'string' && typeof item.label === 'string').slice(0, 8);
+  s.shortcuts = { ...base.shortcuts, ...(saved.shortcuts || {}) };
+  for (const k of Object.keys(base.shortcuts)) {
+    const v = s.shortcuts[k];
+    if (typeof v !== 'string' || !(v === ' ' || /^[a-z0-9]$/i.test(v))) s.shortcuts[k] = base.shortcuts[k];
+  }
   delete s.startMode;
 
   if (!MODE_VIEW[s.lastMode]) s.lastMode = 'clock';

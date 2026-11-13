@@ -33,6 +33,21 @@ function bindStopwatch() {
     renderStopwatch();
   });
   $('swLap').addEventListener('click', recordStopwatchLap);
+  $('swLaps').addEventListener('click', e => {
+    const button = e.target.closest('[data-lap-remove]');
+    if (!button) return;
+    const index = Number(button.dataset.lapRemove);
+    if (!Number.isInteger(index) || index < 0 || index >= rt.sw.laps.length) return;
+
+    rt.sw.laps.splice(index, 1);
+    let previousTotal = 0;
+    rt.sw.laps.forEach(lap => {
+      lap.split = fmtHMS(lap.totalMs - previousTotal);
+      previousTotal = lap.totalMs;
+    });
+    saveRuntimeState();
+    renderLaps();
+  });
   $('swReset').addEventListener('click', () => {
     pauseR(rt.sw);
     rt.sw.acc = 0;
@@ -224,6 +239,11 @@ function bindPanel() {
   $('cfgBtn').addEventListener('click', () => setPanel($('panel').hidden));
   $('closeBtn').addEventListener('click', () => setPanel(false));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') setPanel(false); });
+  document.addEventListener('click', e => {
+    const panel = $('panel');
+    const cfgBtn = $('cfgBtn');
+    if (!panel.hidden && !panel.contains(e.target) && !cfgBtn.contains(e.target)) setPanel(false);
+  });
 
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x === t));
@@ -289,8 +309,8 @@ function bindModeBar() {
 }
 
 /* ---------- Botões ocultos: aparecem ao tocar ou mover o mouse ---------- */
-const CTRL_IDLE_MS = 6000;   // botões de controle (cronômetro, estudo...)
-const UI_IDLE_MS = 6000;    // barra de modos, tela cheia e configurações
+const CTRL_IDLE_MS = 3000;   // botões de controle (cronômetro, estudo...)
+const UI_IDLE_MS = 15000;    // barra de modos, tela cheia e configurações
 // Inatividade de menus só em computador (mouse fino). No celular os menus ficam visíveis.
 const DESKTOP_POINTER = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : true;
 let showTimer = null;
@@ -343,6 +363,44 @@ function bindFullscreen() {
 
 /* ---------- Atalhos de teclado ---------- */
 function bindKeyboardShortcuts() {
+  let waitingForShortcut = null;
+  const shortcutLabels = { toggle: 'Iniciar ou pausar', reset: 'Reiniciar', lap: 'Registrar volta', pip: 'Picture-in-Picture' };
+  const renderShortcutKeys = () => {
+    document.querySelectorAll('[data-shortcut]').forEach(btn => {
+      const value = state.shortcuts[btn.dataset.shortcut];
+      btn.innerHTML = `<kbd>${value === ' ' ? 'Espaço' : value.toUpperCase()}</kbd>`;
+      btn.classList.remove('is-recording');
+      btn.title = `Alterar atalho: ${shortcutLabels[btn.dataset.shortcut]}`;
+    });
+  };
+  document.querySelectorAll('[data-shortcut]').forEach(btn => btn.addEventListener('click', () => {
+    waitingForShortcut = btn.dataset.shortcut;
+    btn.classList.add('is-recording');
+    btn.innerHTML = '<kbd>Pressione...</kbd>';
+  }));
+  document.addEventListener('keydown', e => {
+    if (!waitingForShortcut) return;
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+    if (e.key === 'Escape') { waitingForShortcut = null; renderShortcutKeys(); e.preventDefault(); e.stopImmediatePropagation(); return; }
+    if (e.ctrlKey || e.altKey || e.metaKey || e.repeat || !(e.code === 'Space' || /^[a-z0-9]$/i.test(e.key))) return;
+    const value = e.code === 'Space' ? ' ' : e.key.toLowerCase();
+    if (Object.entries(state.shortcuts).some(([name, key]) => name !== waitingForShortcut && key === value)) {
+      const btn = document.querySelector(`[data-shortcut="${waitingForShortcut}"]`);
+      btn.title = 'Essa tecla já está sendo usada';
+      return;
+    }
+    state.shortcuts[waitingForShortcut] = value;
+    waitingForShortcut = null;
+    save(); renderShortcutKeys(); e.preventDefault(); e.stopImmediatePropagation();
+  }, true);
+  document.querySelectorAll('[data-shortcut]').forEach(btn => btn.addEventListener('blur', () => {
+    if (waitingForShortcut === btn.dataset.shortcut) { waitingForShortcut = null; renderShortcutKeys(); }
+  }));
+  $('resetShortcuts')?.addEventListener('click', () => {
+    state.shortcuts = { toggle: ' ', reset: 'r', lap: 'l', pip: 'p' };
+    save(); renderShortcutKeys();
+  });
+  renderShortcutKeys();
   document.addEventListener('keydown', e => {
     if (e.altKey || e.ctrlKey || e.metaKey || e.repeat) return;
     const target = e.target;
@@ -351,8 +409,8 @@ function bindKeyboardShortcuts() {
     if (interactive && /^(INPUT|TEXTAREA|SELECT)$/.test(interactive.tagName)) return;
 
     const key = e.key.toLowerCase();
-    if ((key === ' ' || e.code === 'Space') && interactive && /^(BUTTON|A)$/.test(interactive.tagName)) return;
-    if ((key === ' ' || e.code === 'Space') && ['stopwatch', 'timer', 'study'].includes(ui.mode)) {
+    if (key === state.shortcuts.toggle && interactive && /^(BUTTON|A)$/.test(interactive.tagName)) return;
+    if (key === state.shortcuts.toggle && ['stopwatch', 'timer', 'study'].includes(ui.mode)) {
       e.preventDefault();
       if (ui.mode === 'stopwatch') {
         if (rt.sw.running) pauseR(rt.sw); else startR(rt.sw);
@@ -370,7 +428,7 @@ function bindKeyboardShortcuts() {
       return;
     }
 
-    if (key === 'r') {
+    if (key === state.shortcuts.reset) {
       if (ui.mode === 'stopwatch') {
         pauseR(rt.sw); rt.sw.acc = 0; rt.sw.laps = [];
         saveRuntimeState(); renderLaps(); renderStopwatch();
@@ -384,13 +442,13 @@ function bindKeyboardShortcuts() {
       return;
     }
 
-    if (key === 'l' && ui.mode === 'stopwatch') {
+    if (key === state.shortcuts.lap && ui.mode === 'stopwatch') {
       e.preventDefault();
       recordStopwatchLap();
       return;
     }
 
-    if (key === 'p') {
+    if (key === state.shortcuts.pip) {
       e.preventDefault();
       toggleFloating();
     }
