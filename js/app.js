@@ -18,22 +18,26 @@ function setMode(m) {
 }
 
 /* ---------- Cronômetro ---------- */
+function recordStopwatchLap() {
+  if (!rt.sw.running) return;
+  const total = elapsed(rt.sw);
+  const prev = rt.sw.laps.length ? rt.sw.laps[rt.sw.laps.length - 1].totalMs : 0;
+  rt.sw.laps.push({ total: fmtHMS(total), totalMs: total, split: fmtHMS(total - prev) });
+  saveRuntimeState();
+  renderLaps();
+}
+
 function bindStopwatch() {
   $('swToggle').addEventListener('click', () => {
     if (rt.sw.running) pauseR(rt.sw); else startR(rt.sw);
     renderStopwatch();
   });
-  $('swLap').addEventListener('click', () => {
-    if (!rt.sw.running) return;
-    const total = elapsed(rt.sw);
-    const prev = rt.sw.laps.length ? rt.sw.laps[rt.sw.laps.length - 1].totalMs : 0;
-    rt.sw.laps.push({ total: fmtHMS(total), totalMs: total, split: fmtHMS(total - prev) });
-    renderLaps();
-  });
+  $('swLap').addEventListener('click', recordStopwatchLap);
   $('swReset').addEventListener('click', () => {
     pauseR(rt.sw);
     rt.sw.acc = 0;
     rt.sw.laps = [];
+    saveRuntimeState();
     renderLaps();
     renderStopwatch();
   });
@@ -52,6 +56,7 @@ function bindTimer() {
     pauseR(rt.tm);
     rt.tm.acc = 0;
     rt.tm.ended = false;
+    saveRuntimeState();
     renderTimer();
   });
   // Campos da tela do temporizador e das configurações mudam a mesma duração
@@ -133,7 +138,8 @@ function bindReminders() {
     if (!time || !text) return;
     state.reminders.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-      time, text, daily: $('remDaily').checked, done: false, lastDate: ''
+      time, text, daily: $('remDaily').checked, done: false, lastDate: '',
+      nextAt: nextOccurrence(time, effTz()), snoozeUntil: 0, pending: false, triggeredAt: 0
     });
     $('remText').value = '';
     save();
@@ -142,16 +148,74 @@ function bindReminders() {
       Notification.requestPermission().then(syncControls).catch(() => {});
     }
   });
+
   $('remList').addEventListener('click', e => {
     const b = e.target.closest('.rem-del');
     if (!b) return;
     state.reminders = state.reminders.filter(r => r.id !== b.dataset.id);
     save();
     renderReminders(getParts(new Date(), effTz()));
+    renderPendingReminderToast();
   });
+
+  $('reminderToast').addEventListener('click', e => {
+    const snoozeButton = e.target.closest('[data-rem-snooze]');
+    const dismissButton = e.target.closest('[data-rem-dismiss]');
+    if (!snoozeButton && !dismissButton) return;
+    const id = $('reminderToast').dataset.reminderId;
+    const reminder = state.reminders.find(r => r.id === id);
+    if (!reminder) {
+      renderPendingReminderToast();
+      return;
+    }
+
+    if (snoozeButton) {
+      const minutes = Math.max(1, Number(snoozeButton.dataset.remSnooze) || 5);
+      reminder.pending = false;
+      reminder.snoozeUntil = Date.now() + minutes * MIN;
+      reminder.triggeredAt = 0;
+      save();
+      $('reminderToast').hidden = true;
+      showPill(`Lembrete adiado por ${minutes} minutos.`);
+    } else {
+      reminder.pending = false;
+      reminder.snoozeUntil = 0;
+      reminder.triggeredAt = 0;
+      if (!reminder.daily) reminder.done = true;
+      save();
+      $('reminderToast').hidden = true;
+      renderPendingReminderToast();
+    }
+    renderReminders(getParts(new Date(), effTz()));
+  });
+
   $('notifBtn').addEventListener('click', () => {
     if (!('Notification' in window)) return;
     Notification.requestPermission().then(syncControls).catch(() => {});
+  });
+}
+
+function bindWorldClocks() {
+  $('worldClockAdd').addEventListener('click', () => {
+    if (state.worldClocks.length >= 8) return;
+    const tz = $('worldClockSelect').value;
+    const preset = WORLD_TZ_PRESETS.find(item => item[0] === tz);
+    if (!preset || state.worldClocks.some(item => item.tz === tz)) return;
+    state.worldClocks.push({ tz: preset[0], label: preset[1] });
+    save();
+    renderWorldClockSettings();
+    ui.worldClockKey = -1;
+    renderWorldClocks(new Date());
+  });
+
+  $('worldClockSettingsList').addEventListener('click', e => {
+    const button = e.target.closest('[data-world-remove]');
+    if (!button) return;
+    state.worldClocks.splice(Number(button.dataset.worldRemove), 1);
+    save();
+    renderWorldClockSettings();
+    ui.worldClockKey = -1;
+    renderWorldClocks(new Date());
   });
 }
 
@@ -225,8 +289,8 @@ function bindModeBar() {
 }
 
 /* ---------- Botões ocultos: aparecem ao tocar ou mover o mouse ---------- */
-const CTRL_IDLE_MS = 10000;   // botões de controle (cronômetro, estudo...)
-const UI_IDLE_MS = 10000;    // barra de modos, tela cheia e configurações
+const CTRL_IDLE_MS = 6000;   // botões de controle (cronômetro, estudo...)
+const UI_IDLE_MS = 6000;    // barra de modos, tela cheia e configurações
 // Inatividade de menus só em computador (mouse fino). No celular os menus ficam visíveis.
 const DESKTOP_POINTER = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : true;
 let showTimer = null;
@@ -277,6 +341,62 @@ function bindFullscreen() {
   document.addEventListener('webkitfullscreenchange', onChangeFs);
 }
 
+/* ---------- Atalhos de teclado ---------- */
+function bindKeyboardShortcuts() {
+  document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey || e.repeat) return;
+    const target = e.target;
+    const interactive = target && typeof target.closest === 'function'
+      ? target.closest('input, textarea, select, button, a, [contenteditable="true"]') : null;
+    if (interactive && /^(INPUT|TEXTAREA|SELECT)$/.test(interactive.tagName)) return;
+
+    const key = e.key.toLowerCase();
+    if ((key === ' ' || e.code === 'Space') && interactive && /^(BUTTON|A)$/.test(interactive.tagName)) return;
+    if ((key === ' ' || e.code === 'Space') && ['stopwatch', 'timer', 'study'].includes(ui.mode)) {
+      e.preventDefault();
+      if (ui.mode === 'stopwatch') {
+        if (rt.sw.running) pauseR(rt.sw); else startR(rt.sw);
+        renderStopwatch();
+      } else if (ui.mode === 'timer') {
+        if (rt.tm.running) pauseR(rt.tm);
+        else {
+          if (rt.tm.ended || elapsed(rt.tm) >= state.timerMs) { rt.tm.acc = 0; rt.tm.ended = false; }
+          if (state.timerMs > 0) startR(rt.tm);
+        }
+        renderTimer();
+      } else {
+        toggleStudy();
+      }
+      return;
+    }
+
+    if (key === 'r') {
+      if (ui.mode === 'stopwatch') {
+        pauseR(rt.sw); rt.sw.acc = 0; rt.sw.laps = [];
+        saveRuntimeState(); renderLaps(); renderStopwatch();
+      } else if (ui.mode === 'timer') {
+        pauseR(rt.tm); rt.tm.acc = 0; rt.tm.ended = false;
+        saveRuntimeState(); renderTimer();
+      } else if (ui.mode === 'study') {
+        resetStudy(); renderStudy(Date.now());
+      } else return;
+      e.preventDefault();
+      return;
+    }
+
+    if (key === 'l' && ui.mode === 'stopwatch') {
+      e.preventDefault();
+      recordStopwatchLap();
+      return;
+    }
+
+    if (key === 'p') {
+      e.preventDefault();
+      toggleFloating();
+    }
+  });
+}
+
 /* ---------- Tela sempre ligada (Screen Wake Lock) ---------- */
 let wakeLock = null;
 async function keepAwake() {
@@ -300,25 +420,46 @@ function bindWakeLock() {
 
 /* ---------- Inicialização ---------- */
 function init() {
+  restoreRuntimeState();
   initDisplays();
   buildSwatches();
   fillTz();
+  fillWorldClockOptions();
   renderBlocks();
+  renderLaps();
 
   bindStopwatch();
   bindTimer();
   bindStudy();
   bindReminders();
+  bindWorldClocks();
   bindPanel();
   bindModeBar();
   bindFloating();
   bindFullscreen();
   bindWakeLock();
+  bindKeyboardShortcuts();
+
+  window.addEventListener('pagehide', saveRuntimeState);
+  document.addEventListener('visibilitychange', () => {
+    saveRuntimeState();
+    if (document.visibilityState === 'visible') {
+      const now = new Date();
+      checkReminders(getParts(now, effTz()));
+      renderPendingReminderToast();
+    }
+  });
+  window.addEventListener('focus', () => {
+    const now = new Date();
+    checkReminders(getParts(now, effTz()));
+    renderPendingReminderToast();
+  });
 
   ['pointermove', 'pointerdown', 'keydown', 'touchstart'].forEach(ev =>
     document.addEventListener(ev, wakeButtons, { passive: true }));
 
   setMode(ui.mode);
+  renderPendingReminderToast();
   wakeButtons();
   setInterval(tick, 100);
 }

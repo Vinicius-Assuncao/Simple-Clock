@@ -24,11 +24,24 @@
   </div>
 
   <div id="examAlert" class="exam-alert" role="status" aria-live="polite" hidden></div>
+  <section id="reminderToast" class="reminder-toast" role="alert" aria-live="assertive" hidden>
+    <div class="reminder-toast-heading">
+      <strong>🔔 Lembrete</strong>
+      <button type="button" data-rem-dismiss aria-label="Marcar lembrete como feito">Feito</button>
+    </div>
+    <p id="reminderToastText"></p>
+    <div class="reminder-snooze-actions" aria-label="Adiar lembrete">
+      <button type="button" data-rem-snooze="5">Adiar 5 min</button>
+      <button type="button" data-rem-snooze="10">Adiar 10 min</button>
+      <button type="button" data-rem-snooze="15">Adiar 15 min</button>
+    </div>
+  </section>
 
   <main>
     <!-- Relógio -->
     <section id="viewClock" class="view">
       <div class="clockwrap" data-clock="clock"></div>
+      <div id="worldClocks" class="world-clocks" aria-label="Relógios mundiais" hidden></div>
     </section>
 
     <!-- Cronômetro -->
@@ -124,6 +137,7 @@
         <button class="tab" data-tab="aparencia"><span class="ic">🎨</span><span class="tl">Aparência</span></button>
         <button class="tab" data-tab="relogio"><span class="ic">🕐</span><span class="tl">Relógio</span></button>
         <button class="tab" data-tab="fuso"><span class="ic">🌍</span><span class="tl">Fuso horário</span></button>
+        <button class="tab" data-tab="atalhos"><span class="ic">⌨️</span><span class="tl">Atalhos</span></button>
         <button class="tab" data-tab="cronos"><span class="ic">⏳</span><span class="tl">Temporizador</span></button>
         <button class="tab" data-tab="estudo"><span class="ic">📚</span><span class="tl">Estudo</span></button>
         <button class="tab" data-tab="prova"><span class="ic">📝</span><span class="tl">Modo prova</span></button>
@@ -141,6 +155,17 @@
             <input type="checkbox" id="hideBtns">
           </label>
           <p class="hint">A tela não desliga enquanto o site está aberto (quando o navegador permite).</p>
+        </section>
+
+        <section class="pane" data-pane="atalhos">
+          <h3>Atalhos de teclado</h3>
+          <div class="shortcut-list">
+            <div><kbd>Espaço</kbd><span>Iniciar ou pausar</span></div>
+            <div><kbd>R</kbd><span>Reiniciar o modo atual</span></div>
+            <div><kbd>L</kbd><span>Registrar volta no cronômetro</span></div>
+            <div><kbd>P</kbd><span>Abrir ou fechar Picture-in-Picture</span></div>
+          </div>
+          <p class="hint">Os atalhos não atuam enquanto você estiver digitando em um campo.</p>
         </section>
 
         <section class="pane" data-pane="aparencia">
@@ -192,10 +217,18 @@
         </section>
 
         <section class="pane" data-pane="fuso">
-          <h3>Fuso horário</h3>
+          <h3>Fuso horário principal</h3>
           <label class="opt row"><span>Mostrar fuso horário</span><input type="checkbox" id="showTz"></label>
           <label class="opt row"><span>Detectar automaticamente</span><input type="checkbox" id="tzAuto"></label>
           <label class="opt"><span>Fuso manual</span><select id="tzSelect"></select></label>
+
+          <h3>Relógios mundiais</h3>
+          <p class="hint">Adicione até 8 cidades para acompanhar outros horários abaixo do relógio principal.</p>
+          <div class="world-clock-add row">
+            <select id="worldClockSelect" aria-label="Cidade para adicionar"></select>
+            <button id="worldClockAdd" class="btn btn-sm" type="button">Adicionar</button>
+          </div>
+          <div id="worldClockSettingsList" class="world-clock-settings-list"></div>
         </section>
 
         <section class="pane" data-pane="cronos">
@@ -266,7 +299,8 @@
           <label class="opt row"><span>Notificação do navegador</span>
             <button id="notifBtn" class="btn btn-sm">Permitir</button>
           </label>
-          <p class="hint">Os lembretes aparecem no site e tocam um som. A notificação do sistema só aparece com a aba aberta.</p>
+          <p class="hint">Com a permissão concedida, o navegador também envia notificações do sistema quando a aba está em segundo plano. Mantenha o navegador aberto; ao voltar para a página, avisos perdidos por suspensão da aba são recuperados.</p>
+          <p class="hint">Quando um lembrete disparar, você poderá marcá-lo como feito ou adiá-lo por 5, 10 ou 15 minutos.</p>
         </section>
 
       </div>

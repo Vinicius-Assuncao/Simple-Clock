@@ -9,9 +9,85 @@ const rt = {
   st: { idx: 0, cycle: 1, running: false, acc: 0, start: 0, done: false, target: 0, lastSeg: -1 }
 };
 
+// Sessões em andamento são guardadas separadamente das preferências. Como os
+// tempos de início são timestamps absolutos, o progresso continua ao reabrir.
+function saveRuntimeState() {
+  try {
+    localStorage.setItem(RUNTIME_STORE_KEY, JSON.stringify({
+      version: 1,
+      savedAt: Date.now(),
+      timerMs: state.timerMs,
+      studyConfig: JSON.stringify(state.study),
+      sw: { ...rt.sw, laps: rt.sw.laps.map(lap => ({ ...lap })) },
+      tm: { ...rt.tm },
+      st: { ...rt.st }
+    }));
+  } catch (e) {}
+}
+
+function restoreRuntimeState() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(RUNTIME_STORE_KEY) || 'null'); }
+  catch (e) { saved = null; }
+  if (!saved || saved.version !== 1) return;
+
+  const numberOr = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+  if (saved.sw && Array.isArray(saved.sw.laps)) {
+    rt.sw.running = !!saved.sw.running;
+    rt.sw.acc = Math.max(0, numberOr(saved.sw.acc));
+    rt.sw.start = Math.max(0, numberOr(saved.sw.start));
+    rt.sw.laps = saved.sw.laps.slice(-500).map(lap => ({
+      total: String(lap.total || '00:00:00'),
+      totalMs: Math.max(0, numberOr(lap.totalMs)),
+      split: String(lap.split || '00:00:00')
+    }));
+  }
+
+  // Uma mudança na duração depois da sessão salva invalida apenas o temporizador.
+  if (saved.tm && numberOr(saved.timerMs, -1) === state.timerMs) {
+    rt.tm.running = !!saved.tm.running;
+    rt.tm.acc = Math.max(0, numberOr(saved.tm.acc));
+    rt.tm.start = Math.max(0, numberOr(saved.tm.start));
+    rt.tm.ended = !!saved.tm.ended;
+    if (rt.tm.running && elapsed(rt.tm) >= state.timerMs) {
+      rt.tm.running = false;
+      rt.tm.acc = state.timerMs;
+      rt.tm.ended = true;
+      showPill('O temporizador terminou enquanto a página estava fechada.');
+    }
+  }
+
+  // Se os blocos ou as opções do estudo mudaram, não restaura um progresso
+  // que já não corresponde à rotina configurada.
+  if (saved.st && saved.studyConfig === JSON.stringify(state.study)) {
+    rt.st.idx = Math.max(0, Math.min(state.study.blocks.length - 1, Math.floor(numberOr(saved.st.idx))));
+    rt.st.cycle = Math.max(1, Math.floor(numberOr(saved.st.cycle, 1)));
+    rt.st.running = !!saved.st.running;
+    rt.st.acc = Math.max(0, numberOr(saved.st.acc));
+    rt.st.start = Math.max(0, numberOr(saved.st.start));
+    rt.st.done = !!saved.st.done;
+    rt.st.target = Math.max(0, numberOr(saved.st.target));
+    rt.st.lastSeg = numberOr(saved.st.lastSeg, -1);
+  }
+
+  saveRuntimeState();
+}
+
 const elapsed = r => r.acc + (r.running ? Date.now() - r.start : 0);
-function startR(r) { if (!r.running) { r.running = true; r.start = Date.now(); } }
-function pauseR(r) { if (r.running) { r.acc += Date.now() - r.start; r.running = false; } }
+function startR(r) {
+  if (!r.running) {
+    r.running = true;
+    r.start = Date.now();
+    saveRuntimeState();
+  }
+}
+function pauseR(r) {
+  if (r.running) {
+    r.acc += Date.now() - r.start;
+    r.running = false;
+    saveRuntimeState();
+  }
+}
 const useFlip = () => state.clock === 'flip';
 
 /* ---------- Relógio ---------- */
@@ -45,6 +121,37 @@ function renderInfo(now, tz) {
     c.tz.hidden = !state.showTz;
     c.tz.textContent = label;
   });
+}
+
+function renderWorldClocks(now) {
+  const list = $('worldClocks');
+  if (!list) return;
+  const secondKey = Math.floor(now.getTime() / 1000);
+  if (ui.worldClockKey === secondKey) return;
+  ui.worldClockKey = secondKey;
+  list.hidden = !state.worldClocks.length;
+  if (!state.worldClocks.length) {
+    list.innerHTML = '';
+    return;
+  }
+
+  list.innerHTML = state.worldClocks.map(item => {
+    try {
+      const time = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: item.tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: state.hour12
+      }).format(now);
+      const date = new Intl.DateTimeFormat('pt-BR', {
+        timeZone: item.tz, weekday: 'short', day: '2-digit', month: 'short'
+      }).format(now);
+      return `<div class="world-clock-card">
+        <span class="world-clock-city">${escapeHtml(item.label)}</span>
+        <strong class="world-clock-time">${time}</strong>
+        <span class="world-clock-date">${date}</span>
+      </div>`;
+    } catch (error) {
+      return '';
+    }
+  }).join('');
 }
 
 /* ---------- Cronômetro ---------- */
@@ -100,6 +207,7 @@ function setTimerMs(ms) {
   rt.tm.acc = 0;
   rt.tm.ended = false;
   save();
+  saveRuntimeState();
 }
 
 function readTimerInputs(prefix) {
@@ -112,12 +220,14 @@ function readTimerInputs(prefix) {
 /* ---------- Estudo ---------- */
 function resetStudy() {
   Object.assign(rt.st, { idx: 0, cycle: 1, running: false, acc: 0, start: 0, done: false, target: 0, lastSeg: -1 });
+  saveRuntimeState();
 }
 
 function finishStudy() {
   rt.st.done = true;
   rt.st.running = false;
   rt.st.acc = 0;
+  saveRuntimeState();
   showPill('Sequência de estudo concluída');
 }
 
@@ -125,8 +235,13 @@ function finishStudy() {
 function studyNext(auto) {
   const r = rt.st;
   const S = state.study;
+  const currentBlock = S.blocks[r.idx];
+  const currentDuration = currentBlock ? Math.max(1, currentBlock.min) * MIN : 0;
+  // Preserve o excesso de tempo quando a página ficou suspensa ou o navegador
+  // atrasou o loop. Assim a sequência não perde minutos ao atravessar blocos.
+  const overshoot = auto && r.running ? Math.max(0, elapsed(r) - currentDuration) : 0;
   r.acc = 0;
-  r.start = Date.now();
+  r.start = Date.now() - overshoot;
   r.idx++;
   if (r.idx >= S.blocks.length) {
     r.idx = 0;
@@ -138,7 +253,12 @@ function studyNext(auto) {
       return;
     }
   }
-  if (auto && !S.autoNext) r.running = false;
+  if (auto && !S.autoNext) {
+    r.running = false;
+    r.acc = 0;
+    r.start = Date.now();
+  }
+  saveRuntimeState();
 }
 
 // Modo horário como base: bloco atual pelo relógio, a partir do início
@@ -181,6 +301,7 @@ function tickStudy(now) {
     if (seg.start !== r.lastSeg) {
       if (r.lastSeg !== -1) alarm();
       r.lastSeg = seg.start;
+      saveRuntimeState();
     }
     return;
   }
@@ -317,12 +438,14 @@ function toggleStudy() {
       r.start = Date.now();
       r.running = true;
       if (S.mode === 'until') r.target = nextOccurrence(S.until, effTz());
+      saveRuntimeState();
     }
   } else {
     if (r.done) resetStudy();
     if (S.mode === 'until' && !r.target) r.target = nextOccurrence(S.until, effTz());
     if (r.running) pauseR(r); else startR(r);
   }
+  saveRuntimeState();
   renderStudy(Date.now());
 }
 
@@ -390,38 +513,101 @@ function renderReminders(p) {
   const items = [...state.reminders].sort(byTime);
   $('remList').innerHTML = items.length ? items.map(r => `
     <li class="${r.done ? 'done' : ''}">
-      <span class="rem-time">${r.time}</span>
+      <span class="rem-time">${escapeHtml(r.time)}</span>
       <span class="rem-text">${escapeHtml(r.text)}</span>
-      <span class="rem-tag">${r.daily ? 'Todo dia' : (r.done ? 'Feito' : 'Uma vez')}</span>
-      <button class="rem-del" data-id="${r.id}" aria-label="Remover lembrete" title="Remover">×</button>
+      <span class="rem-tag">${r.pending ? 'Aviso ativo' : (r.snoozeUntil ? 'Adiado' : (r.daily ? 'Todo dia' : (r.done ? 'Feito' : 'Uma vez')))}</span>
+      <button class="rem-del" data-id="${escapeHtml(r.id)}" aria-label="Remover lembrete" title="Remover">×</button>
     </li>`).join('')
     : '<li class="hint" style="justify-content:center">Nenhum lembrete ainda.</li>';
 
-  const cur = pad(p.h) + ':' + pad(p.mi);
-  const pending = items.filter(r => !r.done);
-  const next = pending.find(r => r.time >= cur) || pending[0];
-  $('remNext').textContent = next ? `Próximo: ${next.time} · ${next.text}` : '';
+  const active = items.some(r => r.pending && !r.done);
+  if (active) {
+    $('remNext').textContent = 'Há lembretes aguardando sua ação.';
+  } else {
+    const next = items.filter(r => !r.done).sort((a, b) =>
+      (Number(a.snoozeUntil || a.nextAt) || Infinity) - (Number(b.snoozeUntil || b.nextAt) || Infinity)
+    )[0];
+    const dueAt = next && Number(next.snoozeUntil || next.nextAt);
+    $('remNext').textContent = next
+      ? `Próximo: ${dueAt ? fmtTime(dueAt, effTz()) : next.time} · ${next.text}`
+      : '';
+  }
 }
 
-// Dispara lembretes na hora marcada (uma vez por dia)
+function renderPendingReminderToast() {
+  const toast = $('reminderToast');
+  if (!toast) return;
+  const pending = state.reminders
+    .filter(r => r.pending && !r.done)
+    .sort((a, b) => (Number(a.triggeredAt) || 0) - (Number(b.triggeredAt) || 0));
+  if (!pending.length || document.visibilityState === 'hidden') {
+    toast.hidden = true;
+    return;
+  }
+  const reminder = pending[0];
+  toast.dataset.reminderId = reminder.id;
+  $('reminderToastText').textContent = reminder.text;
+  toast.hidden = false;
+}
+
+function notifyReminderInBackground(reminder) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const notification = new Notification('SimpleClock — Lembrete', {
+      body: reminder.text,
+      tag: `simpleclock-reminder-${reminder.id}`,
+      renotify: false
+    });
+    notification.onclick = () => {
+      try { window.focus(); } catch (e) {}
+      try { notification.close(); } catch (e) {}
+      setTimeout(renderPendingReminderToast, 250);
+    };
+  } catch (error) {
+    // O lembrete permanece pendente e será mostrado no site ao voltar à aba.
+  }
+}
+
+// Agenda lembretes por timestamp. Assim, uma aba em segundo plano que tenha
+// sido limitada pelo navegador ainda recupera o aviso quando voltar a executar.
 function checkReminders(p) {
-  const hhmm = pad(p.h) + ':' + pad(p.mi);
-  const dateKey = `${p.y}-${p.m}-${p.d}`;
+  const now = Date.now();
+  const tz = effTz();
   let changed = false;
+  const triggered = [];
+
   for (const r of state.reminders) {
-    if (r.done || r.time !== hhmm || r.lastDate === dateKey) continue;
-    r.lastDate = dateKey;
-    if (!r.daily) r.done = true;
-    changed = true;
-    showPill('🔔 ' + r.text);
-    if ('Notification' in window && Notification.permission === 'granted') {
-      try { new Notification('Lembrete', { body: r.text }); } catch (e) {}
+    if (!r || r.done) continue;
+    if (!Number.isFinite(Number(r.nextAt)) || Number(r.nextAt) <= 0) {
+      r.nextAt = nextOccurrence(r.time, tz);
+      changed = true;
+    }
+    if (r.snoozeUntil == null) r.snoozeUntil = 0;
+    if (r.pending == null) r.pending = false;
+    if (r.pending) continue;
+
+    const dueAt = Number(r.snoozeUntil) > 0 ? Number(r.snoozeUntil) : Number(r.nextAt);
+    if (dueAt && now >= dueAt) {
+      const wasSnoozed = Number(r.snoozeUntil) > 0;
+      r.pending = true;
+      r.triggeredAt = now;
+      r.snoozeUntil = 0;
+      if (!wasSnoozed) {
+        if (r.daily) r.nextAt = nextOccurrence(r.time, tz);
+        else r.nextAt = 0;
+      }
+      triggered.push(r);
+      changed = true;
     }
   }
-  if (changed) {
-    save();
-    if (ui.mode === 'reminders') renderReminders(p);
-  }
+
+  if (changed) save();
+  triggered.forEach(r => {
+    if (document.visibilityState === 'hidden') notifyReminderInBackground(r);
+    else alarm();
+  });
+  if (document.visibilityState !== 'hidden') renderPendingReminderToast();
+  if (changed && ui.mode === 'reminders') renderReminders(p);
 }
 
 /* ---------- Loop principal (a cada 100 ms) ---------- */
@@ -431,6 +617,7 @@ function tick() {
   const p = getParts(now, tz);
 
   renderInfo(now, tz);
+  if (ui.mode === 'clock') renderWorldClocks(now);
 
   switch (ui.mode) {
     case 'clock':

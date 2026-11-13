@@ -77,7 +77,7 @@ Abra o `index.html` em um navegador moderno. Não é preciso servidor.
 
 ## Observações
 
-- **Menus com inatividade:** no computador, a barra de modos e os botões de Picture-in-Picture, tela cheia e configurações somem após 15 segundos sem uso (o botão de sair da tela cheia continua visível). No celular, os menus não somem.
+- **Menus com inatividade:** no computador, a barra de modos e os botões de Picture-in-Picture, tela cheia e configurações somem após 6 segundos sem uso (o botão de sair da tela cheia continua visível). No celular, os menus não somem.
 
 - **Tela cheia no iPhone:** o Safari do iOS não permite tela cheia em páginas web, então o botão fica oculto. Para uma experiência parecida, use "Adicionar à Tela de Início".
 - **Sons e avisos:** os sons dependem de um toque na página, exigência dos navegadores. Os avisos só disparam com a aba aberta.

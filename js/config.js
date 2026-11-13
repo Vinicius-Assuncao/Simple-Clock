@@ -12,6 +12,7 @@ const MIN = 60 * 1000;
 
 const STORE_KEY = 'relogio-config-v8';
 const LEGACY_KEY = 'relogio-config-v7';
+const RUNTIME_STORE_KEY = 'simpleclock-runtime-v1';
 
 // Modos: id da view, abas do painel visíveis e se aceitam o analógico
 const MODE_VIEW = {
@@ -23,12 +24,12 @@ const MODE_VIEW = {
   reminders: 'viewRem'
 };
 const MODE_TABS = {
-  clock: ['geral', 'aparencia', 'relogio', 'fuso'],
-  stopwatch: ['geral', 'aparencia', 'relogio'],
-  timer: ['geral', 'aparencia', 'relogio', 'cronos'],
-  study: ['geral', 'aparencia', 'relogio', 'estudo'],
-  exam: ['geral', 'aparencia', 'relogio', 'fuso', 'prova'],
-  reminders: ['geral', 'aparencia', 'relogio', 'lembretes']
+  clock: ['geral', 'aparencia', 'relogio', 'fuso', 'atalhos'],
+  stopwatch: ['geral', 'aparencia', 'relogio', 'fuso', 'atalhos'],
+  timer: ['geral', 'aparencia', 'relogio', 'fuso', 'atalhos', 'cronos'],
+  study: ['geral', 'aparencia', 'relogio', 'fuso', 'atalhos', 'estudo'],
+  exam: ['geral', 'aparencia', 'relogio', 'fuso', 'atalhos', 'prova'],
+  reminders: ['geral', 'aparencia', 'relogio', 'fuso', 'atalhos', 'lembretes']
 };
 const ANALOG_MODES = ['clock', 'exam'];
 
@@ -83,6 +84,26 @@ const detectedTz = (() => {
   catch (e) { return 'UTC'; }
 })();
 
+const WORLD_TZ_PRESETS = [
+  ['America/Sao_Paulo', 'São Paulo'],
+  ['America/New_York', 'Nova York'],
+  ['America/Los_Angeles', 'Los Angeles'],
+  ['America/Mexico_City', 'Cidade do México'],
+  ['America/Santiago', 'Santiago'],
+  ['Europe/London', 'Londres'],
+  ['Europe/Paris', 'Paris'],
+  ['Europe/Rome', 'Roma'],
+  ['Europe/Lisbon', 'Lisboa'],
+  ['Europe/Berlin', 'Berlim'],
+  ['Africa/Johannesburg', 'Joanesburgo'],
+  ['Asia/Dubai', 'Dubai'],
+  ['Asia/Kolkata', 'Nova Délhi'],
+  ['Asia/Shanghai', 'Xangai'],
+  ['Asia/Tokyo', 'Tóquio'],
+  ['Australia/Sydney', 'Sydney'],
+  ['UTC', 'UTC']
+];
+
 const DEFAULTS = {
   lastMode: 'clock',
   modeBarHidden: false,
@@ -110,6 +131,7 @@ const DEFAULTS = {
     blocks: pomodoroBlocks()
   },
   reminders: [],
+  worldClocks: [],
   exam: {
     showTimes: true,
     showCountdown: true,
@@ -133,6 +155,9 @@ function loadState() {
   s.exam.alerts = { ...base.exam.alerts, ...(s.exam.alerts || {}) };
   s.study = { ...base.study, ...(saved.study || {}) };
   if (!Array.isArray(s.study.blocks)) s.study.blocks = pomodoroBlocks();
+  if (!Array.isArray(s.reminders)) s.reminders = [];
+  if (!Array.isArray(s.worldClocks)) s.worldClocks = [];
+  s.worldClocks = s.worldClocks.filter(item => item && typeof item.tz === 'string' && typeof item.label === 'string').slice(0, 8);
   delete s.startMode;
 
   if (!MODE_VIEW[s.lastMode]) s.lastMode = 'clock';
@@ -159,5 +184,6 @@ const ui = {
   mode: state.lastMode,
   infoKey: '',
   examKey: '',
-  fired: new Set()
+  fired: new Set(),
+  worldClockKey: -1
 };

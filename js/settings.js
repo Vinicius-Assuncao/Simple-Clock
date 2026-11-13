@@ -61,6 +61,30 @@ function fillTz() {
   $('tzSelect').innerHTML = list.map(z => `<option value="${z}">${z.replace(/_/g, ' ')}</option>`).join('');
 }
 
+function fillWorldClockOptions() {
+  const select = $('worldClockSelect');
+  if (!select) return;
+  select.innerHTML = WORLD_TZ_PRESETS.map(([tz, label]) =>
+    `<option value="${escapeHtml(tz)}">${escapeHtml(label)}</option>`
+  ).join('');
+  renderWorldClockSettings();
+}
+
+function renderWorldClockSettings() {
+  const list = $('worldClockSettingsList');
+  if (!list) return;
+  list.innerHTML = state.worldClocks.length ? state.worldClocks.map((item, index) => `
+    <div class="world-clock-setting">
+      <span>${escapeHtml(item.label)}</span>
+      <small>${escapeHtml(item.tz)}</small>
+      <button type="button" data-world-remove="${index}" aria-label="Remover ${escapeHtml(item.label)}" title="Remover">×</button>
+    </div>`).join('') : '<p class="hint">Nenhuma cidade adicionada.</p>';
+  const add = $('worldClockAdd');
+  if (add) add.disabled = state.worldClocks.length >= 8;
+  const select = $('worldClockSelect');
+  if (select) select.disabled = state.worldClocks.length >= 8;
+}
+
 function renderBlocks() {
   $('stBlocks').innerHTML = state.study.blocks.map((b, i) => `
     <div class="blk" data-i="${i}">
@@ -161,10 +185,15 @@ function syncControls() {
 
   document.querySelectorAll('.mb[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === ui.mode));
   applyBarVisibility();
+  renderWorldClockSettings();
 
   const hasNotif = 'Notification' in window;
   $('notifBtn').hidden = !hasNotif;
-  if (hasNotif) $('notifBtn').textContent = Notification.permission === 'granted' ? 'Ativa' : 'Permitir';
+  if (hasNotif) {
+    $('notifBtn').textContent = Notification.permission === 'granted'
+      ? 'Ativa' : (Notification.permission === 'denied' ? 'Bloqueada' : 'Permitir');
+    $('notifBtn').disabled = Notification.permission === 'denied';
+  }
 
   refreshTabs();
 }

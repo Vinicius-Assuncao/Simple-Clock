@@ -4,15 +4,6 @@
    quando a janela é fechada, seja pelo usuário ou pelo próprio aplicativo.
    ========================================================================== */
 
-const FLOAT_MODE_NAMES = {
-  clock: 'Horário',
-  stopwatch: 'Cronômetro',
-  timer: 'Temporizador',
-  study: 'Estudo',
-  exam: 'Modo prova',
-  reminders: 'Lembretes'
-};
-
 const floatingState = {
   enabled: false,
   mode: '',
@@ -60,12 +51,6 @@ function restoreFloatingView() {
   resetFloatingReferences();
 }
 
-function updateFloatingLabel(mode) {
-  if (!pictureInPictureWindow || pictureInPictureWindow.closed) return;
-  const label = pictureInPictureWindow.document.getElementById('pipModeLabel');
-  if (label) label.textContent = FLOAT_MODE_NAMES[mode] || 'SimpleClock';
-}
-
 function moveModeIntoFloating(mode) {
   const view = document.getElementById(MODE_VIEW[mode]);
   const target = pictureInPictureWindow?.document.getElementById('pipContent');
@@ -87,7 +72,6 @@ function moveModeIntoFloating(mode) {
 
   try {
     target.appendChild(view);
-    updateFloatingLabel(mode);
   } catch (error) {
     restoreFloatingView();
     throw error;
@@ -129,22 +113,15 @@ function createPipDocument(pip) {
     doc.head.appendChild(link);
   });
 
-  doc.body.innerHTML = `
-    <div id="pipShell">
-      <main id="pipContent"></main>
-    </div>`;
+  // Sem cabeçalho: a janela flutuante mostra somente o conteúdo do modo ativo.
+  // O fechamento fica a cargo do controle nativo da própria janela PiP.
+  doc.body.innerHTML = '<main id="pipContent"></main>';
 
   const style = doc.createElement('style');
   style.textContent = `
     html, body { width:100%; height:100%; min-height:0; margin:0!important; overflow:hidden; }
     body { display:block!important; padding:0!important; background:var(--bg); color:var(--text); }
-    #pipShell { height:100%; display:flex; flex-direction:column; overflow:hidden; background:var(--bg); }
-    #pipHeader { flex:0 0 38px; min-height:38px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:4px 9px 4px 12px; background:var(--ui-card); border-bottom:1px solid var(--ui-border); }
-    #pipHeader div { min-width:0; display:flex; flex-direction:column; gap:0; }
-    #pipHeader strong { font:700 10px system-ui,sans-serif; letter-spacing:.04em; opacity:.65; }
-    #pipModeLabel { font:650 12px system-ui,sans-serif; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #pipCloseBtn { width:27px; height:27px; padding:0; border:1px solid var(--ui-border); border-radius:8px; color:var(--text); background:transparent; font:20px system-ui,sans-serif; cursor:pointer; }
-    #pipContent { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; overflow:auto; padding:8px 12px; }
+    #pipContent { width:100%; height:100%; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; overflow:auto; padding:8px 12px; }
     #pipContent .view { width:100%; gap:7px; }
     #pipContent .view-title { font-size:12px; }
     #pipContent .hint, #pipContent .init-txt { font-size:10px; }
@@ -241,14 +218,6 @@ async function openExternalFloating() {
     pip.addEventListener('pagehide', () => finishExternalFloating(pip), { once: true });
     createPipDocument(pip);
     moveModeIntoFloating(ui.mode);
-
-    const closeButton = pip.document.getElementById('pipCloseBtn');
-    if (closeButton) {
-      closeButton.addEventListener('click', () => {
-        try { pip.close(); }
-        finally { finishExternalFloating(pip); }
-      });
-    }
 
     pip.document.addEventListener('pointerdown', () => {
       if (typeof wakeButtons === 'function') wakeButtons();
