@@ -11,6 +11,7 @@ function setMode(m) {
   if (m === 'exam') ensureExamDefaults();
   Object.values(MODE_VIEW).forEach(id => { $(id).hidden = true; });
   $(MODE_VIEW[m]).hidden = false;
+  if (typeof syncFloatingMode === 'function') syncFloatingMode(m);
   ui.infoKey = '';
   syncControls();
   tick();
@@ -224,8 +225,8 @@ function bindModeBar() {
 }
 
 /* ---------- Botões ocultos: aparecem ao tocar ou mover o mouse ---------- */
-const CTRL_IDLE_MS = 3000;   // botões de controle (cronômetro, estudo...)
-const UI_IDLE_MS = 15000;    // barra de modos, tela cheia e configurações
+const CTRL_IDLE_MS = 10000;   // botões de controle (cronômetro, estudo...)
+const UI_IDLE_MS = 10000;    // barra de modos, tela cheia e configurações
 // Inatividade de menus só em computador (mouse fino). No celular os menus ficam visíveis.
 const DESKTOP_POINTER = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : true;
 let showTimer = null;
@@ -268,6 +269,8 @@ function bindFullscreen() {
     btn.textContent = fs ? '✕' : '⛶';
     btn.title = fs ? 'Sair da tela cheia' : 'Tela cheia';
     btn.setAttribute('aria-label', btn.title);
+    const icon = btn.querySelector('.material-symbols-rounded');
+    if (icon) icon.textContent = fs ? 'fullscreen_exit' : 'fullscreen';
     if (fs) setPanel(false);
   };
   document.addEventListener('fullscreenchange', onChangeFs);
@@ -308,6 +311,7 @@ function init() {
   bindReminders();
   bindPanel();
   bindModeBar();
+  bindFloating();
   bindFullscreen();
   bindWakeLock();
 

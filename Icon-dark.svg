@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>SimpleClock</title>
+  <g fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="128" cy="128" r="100" stroke-width="28" />
+    <path d="M128 128 190 66" stroke-width="28" />
+  </g>
+</svg>

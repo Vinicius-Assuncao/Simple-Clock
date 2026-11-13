@@ -34,7 +34,8 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: max(16px, env(safe-area-inset-top)) 16px 96px;
+  /* Mantém o conteúdo no centro geométrico; as barras são posicionadas por cima. */
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
   overflow-x: hidden;
 }
 
@@ -72,10 +73,15 @@ body {
   border: 1px solid var(--ui-border);
   background: var(--ui-card);
   color: var(--text);
-  font-size: 1.15rem;
   cursor: pointer;
   display: grid;
   place-items: center;
+}
+.icon-btn .material-symbols-rounded {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 400;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 .icon-btn:hover { border-color: var(--text); }
 
@@ -131,9 +137,10 @@ body {
 .mode-show:hover { opacity: 1; }
 
 /* Após um tempo sem uso, menus, tela cheia e configurações somem */
-#cfgBtn, #fsBtn, .mode-bar, .mode-show { transition: opacity 0.6s ease; }
+#cfgBtn, #fsBtn, #floatBtn, .mode-bar, .mode-show { transition: opacity 0.6s ease; }
 body.ui-idle #cfgBtn,
 body.ui-idle #fsBtn,
+body.ui-idle #floatBtn,
 body.ui-idle .mode-bar,
 body.ui-idle .mode-show { opacity: 0; pointer-events: none; }
 /* Em tela cheia o X de sair continua visível, mesmo sem uso */
@@ -141,6 +148,7 @@ html.is-fs body.ui-idle #fsBtn { opacity: 0.6; pointer-events: auto; }
 
 /* Tela cheia: só o botão de sair, mais discreto */
 html.is-fs #cfgBtn,
+html.is-fs #floatBtn,
 html.is-fs .mode-bar,
 html.is-fs .mode-show { display: none !important; }
 html.is-fs #fsBtn {
@@ -152,6 +160,7 @@ html.is-fs #fsBtn {
   border-color: transparent;
 }
 html.is-fs #fsBtn:hover { opacity: 1; }
+html.is-fs #fsBtn .material-symbols-rounded { font-size: 20px; }
 
 @media (max-width: 520px) {
   .mb .ml { display: none; }

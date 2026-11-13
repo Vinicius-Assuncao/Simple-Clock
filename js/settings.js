@@ -32,6 +32,7 @@ function applyTheme() {
   s.setProperty('--flip-edge', c.flipEdge);
   s.setProperty('--pointer', state.pointer);
   s.setProperty('--on-pointer', luminance(state.pointer) > 0.6 ? '#111111' : '#ffffff');
+  if (typeof syncFloatingTheme === 'function') syncFloatingTheme();
 }
 
 /* ---------- Montagem dos controles ---------- */

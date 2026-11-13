@@ -17,7 +17,13 @@ Os modos ficam na barra inferior. Ao sair, o site reabre no último modo usado.
 
 Para esconder a barra de modos, use o botão ✕ no final dela. Um botão ☰ no canto inferior direito a mostra de novo. Em tela cheia, a barra fica oculta.
 
-O analógico existe apenas no relógio. Cronômetro, temporizador, estudo e prova usam os estilos digital ou flip.
+## Janela Picture-in-Picture
+
+Use o botão **picture_in_picture** no canto superior direito para abrir diretamente o modo atual em uma janela externa Picture-in-Picture. Em navegadores compatíveis no computador, ela pode permanecer sobre outros aplicativos e os controles continuam funcionando. Ao trocar de modo no site, a janela acompanha a seleção; ao fechar a janela, a tela retorna automaticamente à página.
+
+Esse recurso depende do suporte do navegador à Document Picture-in-Picture e de um contexto seguro (normalmente HTTPS ou localhost). Não há popup interno alternativo: em navegadores sem suporte, o botão informa que o recurso não está disponível.
+
+O relógio, cronômetro, temporizador, estudo, prova e lembretes compartilham a mesma execução entre a página e a janela flutuante.
 
 ## Configurações
 
@@ -50,16 +56,17 @@ O site pede ao navegador para manter a tela acesa enquanto está aberto. Isso us
 │   ├── display.js    # relógios digital, flip e analógico, avisos e sons
 │   ├── modes.js      # lógica de cada modo e loop principal
 │   ├── settings.js   # tema, painel de configurações e sincronização
+│   ├── floating.js   # janela externa Picture-in-Picture
 │   └── app.js        # eventos, troca de modos, tela cheia, tela ligada e início
 └── README.md
 ```
 
-Os arquivos são carregados em ordem pelo `index.html`, sem módulos ES, então o site funciona até abrindo o `index.html` direto no computador. Não há dependências externas (exceto a fonte Outfit), frameworks nem etapa de build.
+Os arquivos são carregados em ordem pelo `index.html`, sem módulos ES, então o site funciona até abrindo o `index.html` direto no computador. Não há frameworks nem etapa de build. As fontes Outfit e Material Symbols são carregadas do Google Fonts.
 
 ## Como publicar no GitHub Pages
 
 1. Crie um repositório no GitHub (por exemplo, `relogio`).
-2. Envie para a raiz do repositório o `index.html`, o `style.css` e a pasta `js/` (com os quatro arquivos dentro). O `README.md` é opcional.
+2. Envie para a raiz do repositório o `index.html`, o `style.css` e a pasta `js/` (com todos os arquivos dentro). O `README.md` é opcional.
 3. Vá em **Settings → Pages**.
 4. Em **Build and deployment**, escolha **Deploy from a branch**, selecione a branch `main` e a pasta `/ (root)` e clique em **Save**.
 5. Depois de alguns minutos, o site estará em `https://SEU-USUARIO.github.io/relogio/`.
@@ -70,9 +77,13 @@ Abra o `index.html` em um navegador moderno. Não é preciso servidor.
 
 ## Observações
 
-- **Menus com inatividade:** no computador, a barra de modos e os botões de tela cheia e configurações somem após 15 segundos sem uso (o botão ✕ de sair da tela cheia continua visível). No celular, os menus não somem.
+- **Menus com inatividade:** no computador, a barra de modos e os botões de Picture-in-Picture, tela cheia e configurações somem após 15 segundos sem uso (o botão de sair da tela cheia continua visível). No celular, os menus não somem.
 
 - **Tela cheia no iPhone:** o Safari do iOS não permite tela cheia em páginas web, então o botão fica oculto. Para uma experiência parecida, use "Adicionar à Tela de Início".
 - **Sons e avisos:** os sons dependem de um toque na página, exigência dos navegadores. Os avisos só disparam com a aba aberta.
 - **Dados salvos:** configurações, lembretes e a última posição do menu ficam no navegador de quem usa. Cronômetro, temporizador, estudo e voltas são reiniciados ao recarregar a página.
 - **Fuso no modo prova:** os horários são interpretados no fuso selecionado, e não no fuso do computador.
+
+## Ícone do navegador
+
+O favicon possui variantes claras e escuras. O navegador seleciona automaticamente o ícone preto no tema claro e o branco no tema escuro usando `prefers-color-scheme`. O arquivo `Icon.ico` permanece como alternativa para navegadores sem suporte a favicon SVG.

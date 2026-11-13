@@ -39,11 +39,9 @@ function renderInfo(now, tz) {
   }).format(now);
   const label = tzLabel(tz, now);
 
-  document.querySelectorAll('.date').forEach(el => {
-    el.hidden = !state.showDate;
-    el.textContent = dateText;
-  });
   Object.values(CLK).forEach(c => {
+    c.date.hidden = !state.showDate;
+    c.date.textContent = dateText;
     c.tz.hidden = !state.showTz;
     c.tz.textContent = label;
   });

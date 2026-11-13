@@ -2,7 +2,11 @@
    config.js — constantes, paletas, valores padrão e estado salvo localmente
    ========================================================================== */
 
-const $ = id => document.getElementById(id);
+// A janela Picture-in-Picture usa outro documento. Os elementos do modo ativo
+// podem ser movidos para lá, então os seletores também precisam procurá-los.
+let pictureInPictureWindow = null;
+const $ = id => document.getElementById(id)
+  || (pictureInPictureWindow && pictureInPictureWindow.document.getElementById(id));
 const pad = n => String(n).padStart(2, '0');
 const MIN = 60 * 1000;
 
