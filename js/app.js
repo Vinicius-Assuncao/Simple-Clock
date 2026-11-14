@@ -258,19 +258,7 @@ function bindPanel() {
     const key = btn.parentElement.dataset.key;
     const v = btn.dataset.v;
     if (key === 'bg') {
-      if (state.textColor === v) state.textColor = CONTRAST[v];
       state.bg = v;
-      $('textWarn').hidden = true;
-    } else if (key === 'textColor') {
-      if (v === state.bg) {
-        // Cor do texto igual à do fundo: não aceita e avisa
-        const w = $('textWarn');
-        w.hidden = false;
-        clearTimeout(w._t);
-        w._t = setTimeout(() => { w.hidden = true; }, 3000);
-        return;
-      }
-      state.textColor = v;
     } else if (key === 'clockTheme') {
       state.clockTheme = v;
     } else if (key === 'pointer') {
@@ -310,8 +298,8 @@ function bindModeBar() {
 }
 
 /* ---------- Botões ocultos: aparecem ao tocar ou mover o mouse ---------- */
-const CTRL_IDLE_MS = 3000;   // botões de controle (cronômetro, estudo...)
-const UI_IDLE_MS = 15000;    // barra de modos, tela cheia e configurações
+const CTRL_IDLE_MS = 6000;   // botões de controle (cronômetro, estudo...)
+const UI_IDLE_MS = 6000;    // barra de modos, tela cheia e configurações
 // Inatividade de menus só em computador (mouse fino). No celular os menus ficam visíveis.
 let showTimer = null;
 let uiTimer = null;

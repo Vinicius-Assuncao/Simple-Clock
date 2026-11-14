@@ -51,7 +51,6 @@ const COLORS = {
   cinzaClaro:  { label: 'Cinza claro',  hex: '#d9dce2', ui: '#f2f3f6', border: '#b8bcc8', card: '#d9dce2', fg: '#111111', cborder: '#b8bcc8', flipCard: '#eceef2', flipEdge: '#c5c9d4' },
   branco:      { label: 'Branco',       hex: '#ffffff', ui: '#f5f6f8', border: '#d9dce3', card: '#ffffff', fg: '#111111', cborder: '#d9dce3', flipCard: '#f3f4f6', flipEdge: '#d9dce3' }
 };
-// Se o fundo virar a cor do texto, o texto passa a usar este contraste
 const CONTRAST = { preto: 'branco', branco: 'preto', cinzaEscuro: 'cinzaClaro', cinzaClaro: 'cinzaEscuro' };
 
 const POINTERS = [
@@ -116,7 +115,6 @@ const DEFAULTS = {
   clock: 'digital',          // digital | flip | analog
   bg: 'preto',
   clockTheme: 'branco',
-  textColor: 'branco',
   pointer: '#e53935',
   autoTz: true,
   showTz: true,
@@ -173,8 +171,7 @@ function loadState() {
   if (!s.tz) s.tz = detectedTz;
   if (!COLORS[s.bg]) s.bg = 'preto';
   if (!COLORS[s.clockTheme]) s.clockTheme = 'branco';
-  if (!COLORS[s.textColor]) s.textColor = 'branco';
-  if (s.textColor === s.bg) s.textColor = CONTRAST[s.bg];
+  delete s.textColor;
   if (!/^#[0-9a-f]{6}$/i.test(s.pointer || '')) s.pointer = DEFAULTS.pointer;
   if (!['count', 'until', 'infinite'].includes(s.study.mode)) s.study.mode = 'count';
   return s;

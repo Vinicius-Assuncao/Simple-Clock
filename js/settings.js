@@ -19,13 +19,17 @@ function luminance(hex) {
 function applyTheme() {
   const b = COLORS[state.bg];
   const c = COLORS[state.clockTheme];
-  const t = COLORS[state.textColor];
+  const usesDigitalClock = state.clock === 'digital'
+    || (state.clock === 'analog' && !ANALOG_MODES.includes(ui.mode));
+  const digitalColor = usesDigitalClock && state.bg === state.clockTheme
+    ? COLORS[CONTRAST[state.bg]].card
+    : c.card;
   const s = document.documentElement.style;
   s.setProperty('--bg', b.hex);
   s.setProperty('--ui-card', b.ui);
   s.setProperty('--ui-border', b.border);
-  s.setProperty('--text', t.hex);
-  s.setProperty('--clock-card', c.card);
+  s.setProperty('--text', luminance(b.hex) > 0.5 ? '#000000' : '#ffffff');
+  s.setProperty('--clock-card', digitalColor);
   s.setProperty('--clock-fg', c.fg);
   s.setProperty('--clock-border', c.cborder);
   s.setProperty('--flip-card', c.flipCard);
@@ -44,7 +48,6 @@ function buildSwatches() {
   };
   fill('bgSw', Object.entries(COLORS).map(([k, o]) => [k, o.label, o.hex]));
   fill('clockSw', Object.entries(COLORS).map(([k, o]) => [k, o.label, o.card]));
-  fill('textSw', Object.entries(COLORS).map(([k, o]) => [k, o.label, o.hex]));
   fill('ptrSw', POINTERS.map(p => [p.c, p.label, p.c]));
 }
 

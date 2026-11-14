@@ -215,15 +215,15 @@
 
     <div class="panel-body">
       <nav class="side">
-        <button class="tab active" data-tab="geral"><span class="ic">🛠️</span><span class="tl">Geral</span></button>
-        <button class="tab" data-tab="aparencia"><span class="ic">🎨</span><span class="tl">Aparência</span></button>
-        <button class="tab" data-tab="relogio"><span class="ic">🕐</span><span class="tl">Relógio</span></button>
-        <button class="tab" data-tab="fuso"><span class="ic">🌍</span><span class="tl">Fuso horário</span></button>
-        <button class="tab" data-tab="atalhos"><span class="ic">⌨️</span><span class="tl">Atalhos</span></button>
-        <button class="tab" data-tab="cronos"><span class="ic">⏳</span><span class="tl">Temporizador</span></button>
-        <button class="tab" data-tab="estudo"><span class="ic">📚</span><span class="tl">Estudo</span></button>
-        <button class="tab" data-tab="prova"><span class="ic">📝</span><span class="tl">Modo prova</span></button>
-        <button class="tab" data-tab="lembretes"><span class="ic">🔔</span><span class="tl">Lembretes</span></button>
+        <button class="tab active" data-tab="geral"><span class="ic material-symbols-rounded" aria-hidden="true">tune</span><span class="tl">Geral</span></button>
+        <button class="tab" data-tab="aparencia"><span class="ic material-symbols-rounded" aria-hidden="true">palette</span><span class="tl">Aparência</span></button>
+        <button class="tab" data-tab="relogio"><span class="ic material-symbols-rounded" aria-hidden="true">schedule</span><span class="tl">Relógio</span></button>
+        <button class="tab" data-tab="fuso"><span class="ic material-symbols-rounded" aria-hidden="true">public</span><span class="tl">Fuso horário</span></button>
+        <button class="tab" data-tab="atalhos"><span class="ic material-symbols-rounded" aria-hidden="true">keyboard</span><span class="tl">Atalhos</span></button>
+        <button class="tab" data-tab="cronos"><span class="ic material-symbols-rounded" aria-hidden="true">hourglass_top</span><span class="tl">Temporizador</span></button>
+        <button class="tab" data-tab="estudo"><span class="ic material-symbols-rounded" aria-hidden="true">menu_book</span><span class="tl">Estudo</span></button>
+        <button class="tab" data-tab="prova"><span class="ic material-symbols-rounded" aria-hidden="true">edit_note</span><span class="tl">Modo prova</span></button>
+        <button class="tab" data-tab="lembretes"><span class="ic material-symbols-rounded" aria-hidden="true">notifications</span><span class="tl">Lembretes</span></button>
       </nav>
 
       <div class="pane-wrap">
@@ -233,10 +233,9 @@
           <label class="opt row"><span>Sons de aviso</span><input type="checkbox" id="soundOn"></label>
           <label class="opt row"><span>Esconder menus após 15 s sem uso (só no computador)</span><input type="checkbox" id="autoHideUi"></label>
           <label class="opt row">
-            <span>Ocultar botões de controle<br><small class="hint">Os botões aparecem ao tocar ou mover o mouse.</small></span>
+            <span>Ocultar botões de controle</span>
             <input type="checkbox" id="hideBtns">
           </label>
-          <p class="hint">A tela não desliga enquanto o site está aberto (quando o navegador permite).</p>
         </section>
 
         <section class="pane" data-pane="atalhos">
@@ -260,13 +259,6 @@
           <div class="field">
             <span>Cor do relógio</span>
             <div id="clockSw" class="swatches" data-key="clockTheme"></div>
-          </div>
-
-          <h3>Textos</h3>
-          <div class="field">
-            <span>Cor dos textos (data, fuso, painel, modos)</span>
-            <div id="textSw" class="swatches" data-key="textColor"></div>
-            <p id="textWarn" class="warn" hidden>A cor do texto não pode ser igual à do fundo.</p>
           </div>
 
           <h3>Destaque</h3>
@@ -315,7 +307,6 @@
         </section>
 
         <section class="pane" data-pane="cronos">
-          <h3>Duração padrão</h3>
           <div class="field">
             <div class="row">
               <label class="opt inline"><span>h</span><input type="number" id="dH" min="0" max="99"></label>
@@ -361,7 +352,6 @@
           <h3>Início e fim</h3>
           <label class="opt"><span>Início</span><input type="datetime-local" id="examStart"></label>
           <label class="opt"><span>Fim</span><input type="datetime-local" id="examEnd"></label>
-          <p class="hint">Os horários são interpretados no fuso selecionado.</p>
 
           <h3>O que mostrar</h3>
           <label class="opt row"><span>Horário de início e fim</span><input type="checkbox" id="showTimes"></label>
@@ -374,7 +364,6 @@
           <label class="opt row"><span>Faltam 10 minutos</span><input type="checkbox" id="alert10"></label>
           <label class="opt row"><span>Faltam 5 minutos</span><input type="checkbox" id="alert5"></label>
           <label class="opt row"><span>Falta 1 minuto</span><input type="checkbox" id="alert1"></label>
-          <p class="hint">Os avisos aparecem no topo e somem após 1 minuto.</p>
         </section>
 
         <section class="pane" data-pane="lembretes">
@@ -382,8 +371,6 @@
           <label class="opt row"><span>Notificação do navegador</span>
             <button id="notifBtn" class="btn btn-sm">Permitir</button>
           </label>
-          <p class="hint">Com a permissão concedida, o navegador também envia notificações do sistema quando a aba está em segundo plano. Mantenha o navegador aberto; ao voltar para a página, avisos perdidos por suspensão da aba são recuperados.</p>
-          <p class="hint">Quando um lembrete disparar, você poderá marcá-lo como feito ou adiá-lo por 5, 10 ou 15 minutos.</p>
         </section>
 
       </div>
