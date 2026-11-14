@@ -242,7 +242,8 @@ function bindPanel() {
   document.addEventListener('click', e => {
     const panel = $('panel');
     const cfgBtn = $('cfgBtn');
-    if (!panel.hidden && !panel.contains(e.target) && !cfgBtn.contains(e.target)) setPanel(false);
+    const path = e.composedPath();
+    if (!panel.hidden && !path.includes(panel) && !path.includes(cfgBtn)) setPanel(false);
   });
 
   document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
@@ -312,7 +313,6 @@ function bindModeBar() {
 const CTRL_IDLE_MS = 3000;   // botões de controle (cronômetro, estudo...)
 const UI_IDLE_MS = 15000;    // barra de modos, tela cheia e configurações
 // Inatividade de menus só em computador (mouse fino). No celular os menus ficam visíveis.
-const DESKTOP_POINTER = window.matchMedia ? window.matchMedia('(hover: hover) and (pointer: fine)').matches : true;
 let showTimer = null;
 let uiTimer = null;
 

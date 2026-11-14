@@ -167,6 +167,12 @@ html.is-fs #fsBtn .material-symbols-rounded { font-size: 20px; }
   .mb { padding: 9px 11px; }
 }
 
+@media not all and (hover: hover) and (pointer: fine) {
+  #floatBtn,
+  .tab[data-tab="atalhos"],
+  .pane[data-pane="atalhos"] { display: none; }
+}
+
 /* ==========================================================================
    4. Views e textos
    ========================================================================== */
@@ -674,12 +680,14 @@ body.hide-btns.btn-show .tm-inputs { opacity: 1; pointer-events: auto; }
 .shortcut-key { border:0; padding:2px; background:transparent; cursor:pointer; border-radius:7px; }
 .shortcut-key:hover, .shortcut-key.is-recording { background:var(--ui-border); }
 .shortcut-key.is-recording kbd { border-color:var(--pointer); }
+#resetShortcuts { margin-top: 10px; }
 kbd { display:inline-flex; align-items:center; justify-content:center; min-width:32px; padding:3px 7px; border:1px solid var(--ui-border); border-bottom-width:2px; border-radius:6px; background:var(--bg); color:var(--text); font:600 .78rem ui-monospace,monospace; }
 .world-clock-add { margin:9px 0; }
 .world-clock-add select { flex:1; }
 .world-clock-settings-list { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
 .world-clock-setting { display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid var(--ui-border); border-radius:9px; }
 .world-clock-setting span { flex:1; font-size:.85rem; }
+.flag-icon { width:1.2em; height:.9em; margin-right:6px; vertical-align:-.08em; border-radius:2px; box-shadow:0 0 0 1px var(--ui-border); }
 .world-clock-setting small { opacity:.6; font-size:.72rem; }
 .world-clock-setting button { border:0; background:transparent; color:var(--text); font-size:1.1rem; cursor:pointer; opacity:.65; }
 .world-clock-setting button:hover { opacity:1; }

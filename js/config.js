@@ -9,6 +9,9 @@ const $ = id => document.getElementById(id)
   || (pictureInPictureWindow && pictureInPictureWindow.document.getElementById(id));
 const pad = n => String(n).padStart(2, '0');
 const MIN = 60 * 1000;
+const DESKTOP_POINTER = window.matchMedia
+  ? window.matchMedia('(hover: hover) and (pointer: fine)').matches
+  : true;
 
 const STORE_KEY = 'relogio-config-v8';
 const LEGACY_KEY = 'relogio-config-v7';
@@ -85,23 +88,23 @@ const detectedTz = (() => {
 })();
 
 const WORLD_TZ_PRESETS = [
-  ['America/Sao_Paulo', 'São Paulo'],
-  ['America/New_York', 'Nova York'],
-  ['America/Los_Angeles', 'Los Angeles'],
-  ['America/Mexico_City', 'Cidade do México'],
-  ['America/Santiago', 'Santiago'],
-  ['Europe/London', 'Londres'],
-  ['Europe/Paris', 'Paris'],
-  ['Europe/Rome', 'Roma'],
-  ['Europe/Lisbon', 'Lisboa'],
-  ['Europe/Berlin', 'Berlim'],
-  ['Africa/Johannesburg', 'Joanesburgo'],
-  ['Asia/Dubai', 'Dubai'],
-  ['Asia/Kolkata', 'Nova Délhi'],
-  ['Asia/Shanghai', 'Xangai'],
-  ['Asia/Tokyo', 'Tóquio'],
-  ['Australia/Sydney', 'Sydney'],
-  ['UTC', 'UTC']
+  ['America/Sao_Paulo', 'São Paulo', 'br'],
+  ['America/New_York', 'Nova York', 'us'],
+  ['America/Los_Angeles', 'Los Angeles', 'us'],
+  ['America/Mexico_City', 'Cid. do México', 'mx'],
+  ['America/Santiago', 'Santiago', 'cl'],
+  ['Europe/London', 'Londres', 'gb'],
+  ['Europe/Paris', 'Paris', 'fr'],
+  ['Europe/Rome', 'Roma', 'it'],
+  ['Europe/Lisbon', 'Lisboa', 'pt'],
+  ['Europe/Berlin', 'Berlim', 'de'],
+  ['Africa/Johannesburg', 'Joanesburgo', 'za'],
+  ['Asia/Dubai', 'Dubai', 'ae'],
+  ['Asia/Kolkata', 'Nova Délhi', 'in'],
+  ['Asia/Shanghai', 'Xangai', 'cn'],
+  ['Asia/Tokyo', 'Tóquio', 'jp'],
+  ['Australia/Sydney', 'Sydney', 'au'],
+  ['UTC', 'UTC', '']
 ];
 
 const DEFAULTS = {

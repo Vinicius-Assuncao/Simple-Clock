@@ -73,12 +73,18 @@ function fillWorldClockOptions() {
 function renderWorldClockSettings() {
   const list = $('worldClockSettingsList');
   if (!list) return;
-  list.innerHTML = state.worldClocks.length ? state.worldClocks.map((item, index) => `
-    <div class="world-clock-setting">
-      <span>${escapeHtml(item.label)}</span>
-      <small>${escapeHtml(item.tz)}</small>
-      <button type="button" data-world-remove="${index}" aria-label="Remover ${escapeHtml(item.label)}" title="Remover">×</button>
-    </div>`).join('') : '<p class="hint">Nenhuma cidade adicionada.</p>';
+  list.innerHTML = state.worldClocks.length ? state.worldClocks.map((item, index) => {
+    const preset = WORLD_TZ_PRESETS.find(([tz]) => tz === item.tz);
+    const flag = preset && preset[2]
+      ? `<svg class="flag-icon" viewBox="0 0 4 3" aria-hidden="true" focusable="false"><use href="#flag-${preset[2]}"></use></svg>`
+      : '';
+    return `
+      <div class="world-clock-setting">
+        <span>${flag}${escapeHtml(item.label)}</span>
+        <small>${escapeHtml(item.tz)}</small>
+        <button type="button" data-world-remove="${index}" aria-label="Remover ${escapeHtml(item.label)}" title="Remover">×</button>
+      </div>`;
+  }).join('') : '<p class="hint">Nenhuma cidade adicionada.</p>';
   const add = $('worldClockAdd');
   if (add) add.disabled = state.worldClocks.length >= 8;
   const select = $('worldClockSelect');
@@ -101,7 +107,9 @@ function renderBlocks() {
 /* ---------- Abas e painel ---------- */
 // Mostra só as abas do modo atual; se a aba ativa sumir, escolhe a primeira
 function refreshTabs() {
-  const allowed = MODE_TABS[ui.mode];
+  const allowed = MODE_TABS[ui.mode].filter(tab =>
+    tab !== 'atalhos' || DESKTOP_POINTER
+  );
   const tabs = document.querySelectorAll('.tab');
   tabs.forEach(t => { t.hidden = !allowed.includes(t.dataset.tab); });
 
@@ -118,6 +126,10 @@ function setPanel(open) {
   $('panel').hidden = !open;
   $('cfgBtn').setAttribute('aria-expanded', String(open));
 }
+
+window.addEventListener('resize', () => {
+  if (!$('panel').hidden) refreshTabs();
+});
 
 function applyBarVisibility() {
   $('modeBar').hidden = state.modeBarHidden;

@@ -137,6 +137,10 @@ function renderWorldClocks(now) {
 
   list.innerHTML = state.worldClocks.map(item => {
     try {
+      const preset = WORLD_TZ_PRESETS.find(([tz]) => tz === item.tz);
+      const flag = preset && preset[2]
+        ? `<svg class="flag-icon" viewBox="0 0 4 3" aria-hidden="true" focusable="false"><use href="#flag-${preset[2]}"></use></svg>`
+        : '';
       const time = new Intl.DateTimeFormat('pt-BR', {
         timeZone: item.tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: state.hour12
       }).format(now);
@@ -144,7 +148,7 @@ function renderWorldClocks(now) {
         timeZone: item.tz, weekday: 'short', day: '2-digit', month: 'short'
       }).format(now);
       return `<div class="world-clock-card">
-        <span class="world-clock-city">${escapeHtml(item.label)}</span>
+        <span class="world-clock-city">${flag ? `<span aria-hidden="true">${flag}</span> ` : ''}${escapeHtml(item.label)}</span>
         <strong class="world-clock-time">${time}</strong>
         <span class="world-clock-date">${date}</span>
       </div>`;
